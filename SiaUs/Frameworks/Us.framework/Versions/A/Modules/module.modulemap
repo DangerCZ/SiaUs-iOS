@@ -1,0 +1,8 @@
+framework module "Us" {
+	header "ref.h"
+    header "Us.objc.h"
+    header "Universe.objc.h"
+    header "Us.h"
+
+    export *
+}
