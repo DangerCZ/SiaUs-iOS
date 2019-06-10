@@ -118,8 +118,10 @@ class ViewController: UIViewController {
         
         // retrieve the qr code using completion
         readerVC.completionBlock = { (result: QRCodeReaderResult?) in
+            self.readerVC.dismiss(animated: true, completion: nil)
             if let scannedValue = result?.value {
                 self.contractTextField.text = scannedValue
+                self.updateControlStates()
                 self.logMessage("QR code scanned: \(scannedValue)")
             } else {
                 Tooltip.show("QR code scanning ended with no result.")
@@ -132,6 +134,10 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Text Field Changes
+    
+    @IBAction func done(_ sender: UITextField) {
+        sender.resignFirstResponder()
+    }
     
     @objc func contractTextFieldDidChange() {
         
