@@ -36,21 +36,27 @@ Then you can select any photo from your library (if you run on actual iPhone, el
 The process is pretty straight forward. In order to upload or download file, you need to do few things, so let's look at them as they are written in the demo project.
 
 1. Decode the contract data that are encoded as hex string.
+
 `let contract = UsContract(Data(fromHexEncodedString: contractValue)`
 
 2. Prepare new (empty) host set with `shard server` address as a parameter and add new host to it using the decoded `contract`. If you wanted to use multiple contracts, here is the place where you can add them.
+
 `let host = UsNewHostSet(shardServer, &error)`
+
 `try host?.addHost(contract)`
 
 3) Prepare file system with two parameters. One is root folder (check the `getRootFolder` function that checks for existence of `document directory` and creates it if not present) and second is the host set we prepared in previous step. The document directory is very important as after each successful upload it stores `.usa` file in it. These files are kind of key that is needed in order to download the file later. If you plan to download the file from other device, you will need to figure out way how to get this file to the other device first.
+
 `let fileSystem = UsFileSystem.init(rootFolder, hs: host)`
 
 4) Call the `upload` method on the `fileSystem`. You need to provide the `file name` and any `data` you want the file to contain. In this demo it is photo, but the choice is yours. Finally, `minHosts` is set to `1` as we work with single contract.
+
 `try fileSystem?.upload(fileName, data: self.getSelectedPictureData(), minHosts: 1)`
 
 Alternatively, you can call `download` function instead that works similarly, but expects only the `file name` and returns you the `data` that you can decode into actual photo (in this demo).
 
 5) You need to `close` the `file system`. if you don't do this, the uploaded file won't be saved.
+
 `try fileSystem?.close()`
 
 And that's it!
