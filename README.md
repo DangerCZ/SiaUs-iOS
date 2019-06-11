@@ -14,7 +14,7 @@ What you will definitely need are the `shard server` and `contract data` mention
 
 # Updating and importing the framework
 
-You don't need to do it right now because the framework version in this project has all features this demo needs. But if you are going to build more advanced apps and require the framework to expose more of the `us` functions, you will need to know how you update it, compile and import new framework version into your project. This is also explained in the full tutorial linked above in the prerequisites.
+You don't need to do it right now because the framework version in this project has all features this demo needs. But if you are going to build more advanced apps and require the framework to expose more of the `us` functions, you will need to know how you update it, compile and import new framework version into your project. You can find more details about it in the article linked above or check the `us-bindings` repository directly: https://github.com/lukechampine/us-bindings.
 
 If you already have the `Us.Framework` compiled, all you need to do is to open `SiaUs-iOS / SiaUs / Frameworks` folder and replace the `Us.Framework` there. Alternatively, you can just delete old one and drag the new version in the Xcode directly. You will need to do this each time you compile the framework unless you make some script to automate this for you.
 
