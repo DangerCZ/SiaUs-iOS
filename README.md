@@ -12,7 +12,7 @@ This project was created with Xcode 10.2 and doesn't have any pods or dependenci
 
 What you will definitely need are the `shard server` and `contract data` mentioned earlier. If you don't know how to get them or you got to this repo accidentally, make sure to check the full tutorial which this readme is part of: https://medium.com/p/6c7077da6c18
 
-# Updating and importing `Us.Framework`
+# Updating and importing the framework
 
 You don't need to do it right now because the framework version in this project has all features this demo needs. But if you are going to build more advanced apps and require the framework to expose more of the `us` functions, you will need to know how you update it, compile and import new framework version into your project. This is also explained in the full tutorial linked above in the prerequisites.
 
