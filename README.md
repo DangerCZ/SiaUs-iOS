@@ -8,6 +8,8 @@ This project was created with Xcode 10.2 and doesn't have any pods or dependenci
 
 However, in order to use the app, you will need a file contract and a `shard` server to connect to. The [us-bindings](https://github.com/lukechampine/us-bindings) repo has instructions for obtaining a file contract. As for the `shard` server, you can run one yourself or connect to a public instance.
 
+You can also find more details in this [article](https://medium.com/p/6c7077da6c18) that this project is part of.
+
 # Updating and importing the framework
 
 This repo includes `Us.framework`, which is generated from the `us-bindings` repo by the `gomobile` tool. You may want to rebuild this framework if the `us` mobile bindings are updated with bug fixes or new functionality. To do so, run these commands:
