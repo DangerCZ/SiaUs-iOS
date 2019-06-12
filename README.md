@@ -8,7 +8,7 @@ This project was created with Xcode 10.2 and doesn't have any pods or dependenci
 
 However, in order to use the app, you will need a file contract and a `shard` server to connect to. The [us-bindings](https://github.com/lukechampine/us-bindings) repo has instructions for obtaining a file contract. As for the `shard` server, you can run one yourself or connect to a public instance.
 
-You can also find more details in this [article](https://medium.com/p/6c7077da6c18) that this project is part of.
+You can also find more details in this [article](https://medium.com/@michalsefl/6c7077da6c18) that this project is part of.
 
 # Updating and importing the framework
 
