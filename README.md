@@ -1,67 +1,77 @@
 # SiaUs-iOS
 
-Main purpose of this repository is to show you how to work with Sia `us` framework on simple demo project. `Us.Framework` is compiled version of `us` project written in `go` (https://github.com/lukechampine/us) and it is alternative and low level API for `Sia` (decentralized cloud storage platform).
-
-This demo iOS app works with Sia `shard server` and `contract data` (string of 192 characters) you can prepare on your personal Sia node and use them to upload selected photo from your iPhone's photo library directly to the host. After doing so, it will locally store the `.usa` file which is required in order to download the photo later.
-
-TLDR: You can upload and download photos on the Sia platform! Yay!
+This repository demonstrates how to use the [`us` mobile bindings](https://github.com/lukechampine/us-bindings) to create a simple iOS app that stores data on Sia. The app scans a file contract from a QR code, connects to a [`shard` server](https://github.com/lukechampine/shard), and uses the Sia renter-host protocol to upload and download an image chosen from the user's photo library.
 
 # Prerequisites
 
-This project was created with Xcode 10.2 and doesn't have any pods or dependencies. All resources you need are in the project already so it works out of the box. It should serve as inspiration for you.
+This project was created with Xcode 10.2 and doesn't have any pods or dependencies. All resources you need are in the project already, so it works out of the box.
 
-What you will definitely need are the `shard server` and `contract data` mentioned earlier. If you don't know how to get them or you got to this repo accidentally, make sure to check the full tutorial which this readme is part of: https://medium.com/p/6c7077da6c18
+However, in order to use the app, you will need a file contract and a `shard` server to connect to. The [us-bindings](https://github.com/lukechampine/us-bindings) repo has instructions for obtaining a file contract. As for the `shard` server, you can run one yourself or connect to a public instance.
 
 # Updating and importing the framework
 
-You don't need to do it right now because the framework version in this project has all features this demo needs. But if you are going to build more advanced apps and require the framework to expose more of the `us` functions, you will need to know how you update it, compile and import new framework version into your project. You can find more details about it in the article linked above or check the `us-bindings` repository directly: https://github.com/lukechampine/us-bindings.
+This repo includes `Us.framework`, which is generated from the `us-bindings` repo by the `gomobile` tool. You may want to rebuild this framework if the `us` mobile bindings are updated with bug fixes or new functionality. To do so, run these commands:
 
-If you already have the `Us.Framework` compiled, all you need to do is to open `SiaUs-iOS / SiaUs / Frameworks` folder and replace the `Us.Framework` there. Alternatively, you can just delete old one and drag the new version in the Xcode directly. You will need to do this each time you compile the framework unless you make some script to automate this for you.
+```
+go get -u lukechampine.com/us-bindings/gomobile
+gomobile bind -target=ios lukechampine.com/us-bindings/gomobile
+```
+
+This will generate a new `Us.framework`, which you should place in `SiaUs-iOS / SiaUs / Frameworks` in Xcode. Alternatively, you can delete the existing framework and drag the new version into Xcode. You will need to do this each time you rebuild the framework.
 
 # Running the app
 
-Next step is to open the project `SiaUs-iOS / SiaUs.xcodeproj`, build it and run it in simulator.
+Once you have `Us.framework` in Xcode, you can build and run the app in simulator. You can then scan the contract QR code you generated previously and enter the address of the `shard` server you are using. You can also simply hard-code the contract and server values in the app source code, which you can find in `Constants.swift`.
 
-Once launched, just enter the `host address` and `contract data`. As writing 192 characters is quite difficult, you can use any of these two options:
+Next, enter a name for your file, select the image from your library, and hit Upload. After a moment, the upload will complete. You can then download the file, causing it to appear at the bottom of the screen. Note that the app will ignore any touches during the upload/download. 
 
-- open `Constants.swift` and change value of `testContract` to your 192 characters long string (return it to nil if you want to stop pre-filling it after launch)
-- use the `Scan Contract (QR Code)` button in the app, for example to scan QR code with the contract data you generated on your computer
+# Using the `us` Bindings
 
-Now all you need to do is write name of the file. Whatever you choose, it will be used as a name of the selected photo and `.png` automatically added to it.
+The `us` bindings do not provide much functionality yet, but they are sufficient for a simple app like this. We need to do three things: import a file contract, connect to hosts, and upload/download a file.
 
-Then you can select any photo from your library (if you run on actual iPhone, else it will show you default library with few images of nature that come with the simulator) and touch `Upload` button. For average photo this can take some time (see in the video), so be patient, but no worries. The app ignores any touches during the upload/download. Also it remembers your previously filled values after restart.
+### Importing contracts
 
-# How does it work?
+Contracts are created with the `UsContract` constructor, which accepts a 96-byte array. Contracts are typically provided as a 192-byte hexadecimal string, so we need to handle that as well:
 
-The process is pretty straight forward. In order to upload or download file, you need to do few things, so let's look at them as they are written in the demo project.
+```swift
+let contract = UsContract(Data(fromHexEncodedString: contractValue)
+```
 
-1. Decode the contract data that are encoded as hex string.
+### Connecting to hosts
 
-`let contract = UsContract(Data(fromHexEncodedString: contractValue)`
+A host set is a group of hosts that will collectively store a file. Each host has an associated contract. We also make use of our `shard` server to resolve the host's public keys to their IP addresses. First, we initialize an empty host set with the address of our `shard` server:
 
-2. Prepare new (empty) host set with `shard server` address as a parameter and add new host to it using the decoded `contract`. If you wanted to use multiple contracts, here is the place where you can add them.
+```swift
+let hostSet = UsNewHostSet(shardServer, &error)
+```
 
-`let host = UsNewHostSet(shardServer, &error)`
+Then, we connect to the host by adding our contract:
 
-`try host?.addHost(contract)`
+```swift
+try hostSet?.addHost(contract)
+```
 
-3) Prepare file system with two parameters. One is root folder (check the `getRootFolder` function that checks for existence of `document directory` and creates it if not present) and second is the host set we prepared in previous step. The document directory is very important as after each successful upload it stores `.usa` file in it. These files are kind of key that is needed in order to download the file later. If you plan to download the file from other device, you will need to figure out way how to get this file to the other device first.
+If your app uses multiple contracts, you should call `addHost` on each of them.
 
-`let fileSystem = UsFileSystem.init(rootFolder, hs: host)`
+### Creating the virtual filesystem
 
-4) Call the `upload` method on the `fileSystem`. You need to provide the `file name` and any `data` you want the file to contain. In this demo it is photo, but the choice is yours. Finally, `minHosts` is set to `1` as we work with single contract.
+With the host set ready, we can create a virtual filesystem that stores files on Sia. The virtual filesystem needs to store a piece of metadata for each file we upload to Sia, so we pass it a root directory in addition to the host set:
 
-`try fileSystem?.upload(fileName, data: self.getSelectedPictureData(), minHosts: 1)`
+```swift
+let fileSystem = UsFileSystem.init(rootFolder, hs: host)
+```
 
-Alternatively, you can call `download` function instead that works similarly, but expects only the `file name` and returns you the `data` that you can decode into actual photo (in this demo).
+This directory should be the app's document directory; otherwise, you may get a permissions error when the filesystem attempts to save its metadata. You will need this metadata to download your files later, so consider syncing it across the user's devices.
 
-5) You need to `close` the `file system`. if you don't do this, the uploaded file won't be saved.
+It is very important that you call `close` on the filesystem before quitting the app. This method flushes any unwritten data to Sia hosts and saves the corresponding metadata to local storage. Failing to call `close` may cause data loss!
 
-`try fileSystem?.close()`
+Once you have a filesystem, uploading and downloading are straightforward:
 
-And that's it!
+```swift
+try fileSystem?.upload(fileName, data: fileData, minHosts: 1)
+let data = try fileSystem?.download(fileName)
+```
 
-# Troubleshooting
+The only interesting parameter here is `minHosts`, which controls the redundancy of the file. If you have six contracts and `minHosts = 2`, then you will be able to download the file from any two hosts; i.e. the file will have 3x redundancy.
 
-I don't expect issues with the app but can imagine some issues coming from your Sia node. For example, insufficient funding as each upload and download costs you something in SC for the host's bandwidth. Just let me know if you run into issues and I will update the repo as neccessary.
-
+That's it! Now you're ready to start using Sia in your own mobile app. :)
